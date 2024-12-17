@@ -1,13 +1,20 @@
 import React from 'react';
 
+enum FilterType {
+  all = 'all',
+  active = 'active',
+  completed = 'completed',
+}
+
 type Props = {
-  onFilterActive: (typeOfFilter: string) => void;
-  onHandleInput: (query: string) => void;
+  query: string;
+  setQuery: (query: string) => void;
+  completedFilter: FilterType | null;
+  setCompletedFilter: (filter: FilterType | null) => void;
 };
 
-export const TodoFilter: React.FC<Props> = (Props: Props) => {
-  const { onFilterActive, onHandleInput } = Props;
-  const [query, setQuery] = React.useState('');
+export const TodoFilter: React.FC<Props> = (props: Props) => {
+  const { query, setQuery, completedFilter, setCompletedFilter } = props;
 
   return (
     <form className="field has-addons">
@@ -15,11 +22,16 @@ export const TodoFilter: React.FC<Props> = (Props: Props) => {
         <span className="select">
           <select
             data-cy="statusSelect"
-            onChange={e => onFilterActive(e.target.value)}
+            value={completedFilter ?? FilterType.all}
+            onChange={e => {
+              const selectedValue = e.target.value as FilterType;
+
+              setCompletedFilter(selectedValue);
+            }}
           >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="completed">Completed</option>
+            <option value={FilterType.all}>All</option>
+            <option value={FilterType.active}>Active</option>
+            <option value={FilterType.completed}>Completed</option>
           </select>
         </span>
       </p>
@@ -32,7 +44,6 @@ export const TodoFilter: React.FC<Props> = (Props: Props) => {
           placeholder="Search..."
           value={query}
           onChange={event => {
-            onHandleInput(event.target.value);
             setQuery(event.target.value);
           }}
         />
@@ -48,7 +59,7 @@ export const TodoFilter: React.FC<Props> = (Props: Props) => {
               type="button"
               className="delete"
               onClick={() => {
-                onHandleInput('');
+                setCompletedFilter(FilterType.all);
                 setQuery('');
               }}
             />

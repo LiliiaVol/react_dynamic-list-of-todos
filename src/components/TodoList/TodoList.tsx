@@ -57,15 +57,7 @@ export const TodoList: React.FC<Props> = Props => {
                 data-cy="selectButton"
                 className="button"
                 type="button"
-                onClick={() => {
-                  if (todoWatched?.id === todo.id) {
-                    // setTodoIdWatching(null);
-                    onEyeButtonClick(null);
-                  } else {
-                    // setTodoIdWatching(todo.id);
-                    onEyeButtonClick(todo.id);
-                  }
-                }}
+                onClick={() => onEyeButtonClick(todo.id)}
               >
                 <span className="icon">
                   {todo.id === todoWatched?.id ? (

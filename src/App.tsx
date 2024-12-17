@@ -9,67 +9,49 @@ import { TodoModal } from './components/TodoModal';
 import { Loader } from './components/Loader';
 import { getTodos } from './api';
 import { Todo } from './types/Todo';
-// import { User } from './types/User';
 
 export const App: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(true);
-  const [isModalActive, setIsModalActive] = React.useState(false);
   const [todos, setTodos] = React.useState<Todo[]>([]);
   const [selectedTodo, setSelectedTodo] = React.useState<Todo>();
-  const [currentTodos, setCurrentTodos] = React.useState<Todo[]>([]);
+  const [completedFilter, setCompletedFilter] = React.useState<string | null>(
+    '',
+  );
   const [query, setQuery] = React.useState('');
 
   useEffect(() => {
-    getTodos().then(fetchedTodos => {
-      setIsLoading(false);
-      setTodos(fetchedTodos);
-      setCurrentTodos(fetchedTodos);
-    });
+    getTodos()
+      .then(fetchedTodos => {
+        setTodos(fetchedTodos);
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const normalizedQuery = query.toLowerCase();
 
-  // do this in one function abd delete current todos useMemo
-  const filteredTodos = useMemo(() => {
-    return currentTodos.filter(todo =>
-      todo.title.toLowerCase().includes(normalizedQuery),
+  const currentTodos = useMemo((): Todo[] => {
+    const filteredTodos =
+      completedFilter === 'active'
+        ? todos.filter(todo => !todo.completed)
+        : completedFilter === 'completed'
+          ? todos.filter(todo => todo.completed)
+          : todos;
+
+    return filteredTodos.filter(todo =>
+      todo.title.toLowerCase().includes(normalizedQuery.toLowerCase()),
     );
-  }, [normalizedQuery, currentTodos]);
-
-  const filterActive = useCallback(
-    (typeOfFilter: string) => {
-      if (typeOfFilter === 'active') {
-        setCurrentTodos(todos.filter(todo => !todo.completed)); // Show active todos
-      } else if (typeOfFilter === 'completed') {
-        setCurrentTodos(todos.filter(todo => todo.completed)); // Show completed todos
-      } else {
-        setCurrentTodos(todos); // Reset to all todos
-      }
-    },
-    [todos],
-  );
-  // end
-
-  const handleInput = (e: string) => {
-    setQuery(e);
-  };
+  }, [todos, completedFilter, normalizedQuery]);
 
   const handleEyeButtonClick = useCallback(
     (todoId: number | null) => {
-      if (!isModalActive) {
-        setSelectedTodo(undefined);
-      }
-
       if (typeof todoId === 'number') {
-        setIsModalActive(true);
         setSelectedTodo(currentTodos.find(todo => todo.id === todoId));
       }
     },
-    [currentTodos, isModalActive],
+    [currentTodos],
   );
 
   const closeModal = () => {
-    setIsModalActive(false);
     setSelectedTodo(undefined);
   };
 
@@ -82,8 +64,10 @@ export const App: React.FC = () => {
 
             <div className="block">
               <TodoFilter
-                onFilterActive={filterActive}
-                onHandleInput={handleInput}
+                query={query}
+                setQuery={setQuery}
+                completedFilter={completedFilter}
+                setCompletedFilter={setCompletedFilter}
               />
             </div>
 
@@ -92,7 +76,7 @@ export const App: React.FC = () => {
                 <Loader />
               ) : (
                 <TodoList
-                  todos={filteredTodos}
+                  todos={currentTodos}
                   onEyeButtonClick={handleEyeButtonClick}
                   todoWatched={selectedTodo}
                 />

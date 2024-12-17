@@ -3,6 +3,7 @@ import { Loader } from '../Loader';
 import { Todo } from '../../types/Todo';
 import { getUser } from '../../api';
 import { User } from '../../types/User';
+import classNames from 'classnames';
 
 type Props = {
   todo?: Todo;
@@ -17,7 +18,7 @@ export const TodoModal: React.FC<Props> = (Props: Props) => {
 
   useEffect(() => {
     if (todo) {
-      getUser(todo.id)
+      getUser(todo.userId)
         .then(setUser)
         .finally(() => setIsLoading(false));
     }
@@ -54,12 +55,18 @@ export const TodoModal: React.FC<Props> = (Props: Props) => {
             </p>
 
             <p className="block" data-cy="modal-user">
-              {/*<strong className="has-text-success">Done</strong>*/}
-              <strong className="has-text-danger">Planned</strong>
+              <strong
+                className={classNames({
+                  'has-text-danger': !todo?.completed,
+                  'has-text-success': todo?.completed,
+                })}
+              >
+                {todo?.completed ? 'Done' : 'Planned'}
+              </strong>
 
               {' by '}
 
-              <a href="mailto:Sincere@april.biz">{user?.name}</a>
+              <a href={`mailto:${user?.email}`}>{user?.name}</a>
             </p>
           </div>
         </div>
